@@ -1,0 +1,5 @@
+matplotlib==3.2.2
+numpy==1.18.5
+pytorch_crf==0.7.2
+torch==1.8.2+cu111
+torchcrf==1.1.0
