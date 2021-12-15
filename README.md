@@ -79,7 +79,7 @@ O O O O B I \n
 │  │  source_BIO_2014_cropus.txt  # [未上传]人民日报2014解压后数据集
 │  │  split_dataset.py  # 人民日报数据集分割脚本
 │  │  target_BIO_2014_cropus.txt  # [未上传]人民日报2014解压后数据集
-│  │  vocab.txt  # 从bert-base里拿来的字符集
+│  │  vocab.txt  # 从bert-base-chinese里拿来的字符集
 │  │
 │  ├─test  # 测试数据集
 │  │      source.txt
@@ -103,7 +103,7 @@ O O O O B I \n
 数据引用：
 
 1. [2014年人民日报语料](https://github.com/hspuppy/hugbert/blob/master/ner_dataset/pd2014.tar.bz2)
-2. [bert-base的vocab]([vocab.txt · bert-base-chinese at main (huggingface.co)](https://huggingface.co/bert-base-chinese/blob/main/vocab.txt))
+2. [bert-base-chinese的vocab](https://huggingface.co/bert-base-chinese/blob/main/vocab.txt)
 
 
 
