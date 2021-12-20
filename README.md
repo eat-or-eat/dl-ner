@@ -19,7 +19,7 @@ numpy==1.18.5
 pytorch_crf==0.7.2
 torch==1.8.2+cu111
 ```
-
+> pip安装crf：pip install pytorch-crf
 ## 1.下载
 
 `git clone git@github.com:eat-or-eat/dl-ner.git `
