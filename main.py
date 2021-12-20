@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 def main(config):
     # 创建保存模型的目录
-    if not os.path.isdir(config["model_path"]):
-        os.mkdir(config["model_path"])
+    if not os.path.exists(config["model_path"]):
+        os.makedirs(config["model_path"])
     # 加载训练数据
     train_data = load_dataset(config)
     # 加载模型
