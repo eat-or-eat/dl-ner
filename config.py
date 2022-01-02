@@ -8,10 +8,10 @@ config = {
     # 模型系列参数
     'max_length': 150,
     'hidden_size': 128,
-    'batch_size': 256,
+    'batch_size': 512,
     'epoch': 20,
-    'model_type': 'gru',
-    'use_crf': False,
+    'model_type': 'lstm',
+    'use_crf': True,
     'train': True,
     # 优化器系列参数
     'optimizer': 'adam',

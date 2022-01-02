@@ -1,15 +1,61 @@
-# dl-ner
-基于lstm-crf的命名实体识别
-
-todo
+# 基于lstm-crf的实体抽取任务
 
 ---
 
-- [x] 基本baseline-数据预处理，模型预测 -21/12/15
-- [ ] 模型调参优化，生成训练过程以及结果展示文件
-- [ ] 上线到自己的云服务器测试
+- [X]  基本baseline-数据预处理，模型预测 -21/12/15
+- [X]  模型调参优化，生成训练过程以及结果展示文件 -22/1/3
 
-# 一，使用项目
+# 一，项目介绍
+
+数据来源：
+
+[2014年人民日报语料](https://github.com/hspuppy/hugbert/blob/master/ner_dataset/pd2014.tar.bz2)
+
+[bert-base-chinese的vocab](https://huggingface.co/bert-base-chinese/blob/main/vocab.txt)
+
+## 1.原理
+
+> 通过lstm做编码，crf做辅助纠正做序列标注，但因为是实体抽取任务，最终统计结果需要通过正则来解码，最后超参数搜索一下超参数
+
+## 2.项目结构
+
+```bash
+│  config.py
+│  main.py  # 训练脚本
+│  README.md
+│  requirements.txt
+|
+├─data
+│  │  schema.json  # BIO标注配置文件
+│  │  split_dataset.py  # 数据分割
+│  │  vocab.txt  # 来自hugging face的词表
+│  │
+│  ├─test  # 测试集
+│  │      source.txt
+│  │      target.txt
+│  │
+│  └─train  # 训练集
+│          source.txt
+│          target.txt
+│
+├─output
+│  └─model
+├─src
+│  │  evaluator.py  # 评估函数
+│  │  loader.py  # 数据加载
+│  │  model.py  # 模型
+```
+
+## 3.数据展示
+> 最优没用crf的结果：
+
+![](output/model/report-lstm-False-0.01-0.879542.png)
+
+> 最优用了crf的结果
+
+![](output/model/report-lstm-True-0.01-0.875655.png)
+
+# 二，使用项目
 
 环境：
 
@@ -19,7 +65,9 @@ numpy==1.18.5
 pytorch_crf==0.7.2
 torch==1.8.2+cu111
 ```
+
 > pip安装crf：pip install pytorch-crf
+
 ## 1.下载
 
 `git clone git@github.com:eat-or-eat/dl-ner.git `
@@ -62,48 +110,3 @@ O O O O B I \n
 2021-12-15 11:28:17,032 - __main__ - INFO - -----------------------------
 
 ```
-
-
-
-# 二，项目介绍
-
-```bash
-|  config.py  # 配置文件
-│  main.py  # 训练主程序
-│  README.md  
-│  requirements.txt
-│
-├─data
-│  │  pd2014.tar.bz2  # [未上传]人民日报2014数据集，需要可从最下面的链接下载
-│  │  schema.json  # BIO-schema
-│  │  source_BIO_2014_cropus.txt  # [未上传]人民日报2014解压后数据集
-│  │  split_dataset.py  # 人民日报数据集分割脚本
-│  │  target_BIO_2014_cropus.txt  # [未上传]人民日报2014解压后数据集
-│  │  vocab.txt  # 从bert-base-chinese里拿来的字符集
-│  │
-│  ├─test  # 测试数据集
-│  │      source.txt
-│  │      target.txt
-│  │
-│  └─train  # 训练数据集
-│          source.txt
-│          target.txt
-│
-├─output  # 输出文件夹
-│  └─model
-│          epoch_10.pth
-│          epoch_20.pth
-│
-├─src  # 核心脚本
-│  │  evaluator.py  # 测试机评估脚本
-│  │  loader.py  # 数据载入脚本
-│  │  model.py  # 模型设计脚本
-```
-
-数据引用：
-
-1. [2014年人民日报语料](https://github.com/hspuppy/hugbert/blob/master/ner_dataset/pd2014.tar.bz2)
-2. [bert-base-chinese的vocab](https://huggingface.co/bert-base-chinese/blob/main/vocab.txt)
-
-
-

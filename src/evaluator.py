@@ -1,36 +1,47 @@
-import torch
+import os
 import re
+import torch
 import numpy as np
+import matplotlib.pyplot as plt
+
 from collections import defaultdict
 from src.loader import load_dataset
+
+"""
+模型效果测试类
+"""
+
+# 支持中文
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
 
 
 def decode(sentence, labels):
     """{
-        "B_LOC": 0,
-        "B_ORG": 1,
-        "B_PER": 2,
-        "B_T": 3,
-        "I_LOC": 4,
-        "I_ORG": 5,
-        "I_PER": 6,
-        "I_T": 7,
-        "O": 8
+        'B_LOC': 0,
+        'B_ORG': 1,
+        'B_PER': 2,
+        'B_T': 3,
+        'I_LOC': 4,
+        'I_ORG': 5,
+        'I_PER': 6,
+        'I_T': 7,
+        'O': 8
     }"""
-    labels = "".join([str(x) for x in labels[:len(sentence)]])
+    labels = ''.join([str(x) for x in labels[:len(sentence)]])
     results = defaultdict(list)
-    for location in re.finditer("(04+)", labels):
+    for location in re.finditer('(04+)', labels):
         s, e = location.span()
-        results["LOC"].append(sentence[s:e])
-    for location in re.finditer("(15+)", labels):
+        results['LOC'].append(sentence[s:e])
+    for location in re.finditer('(15+)', labels):
         s, e = location.span()
-        results["ORG"].append(sentence[s:e])
-    for location in re.finditer("(26+)", labels):
+        results['ORG'].append(sentence[s:e])
+    for location in re.finditer('(26+)', labels):
         s, e = location.span()
-        results["PER"].append(sentence[s:e])
-    for location in re.finditer("(37+)", labels):
+        results['PER'].append(sentence[s:e])
+    for location in re.finditer('(37+)', labels):
         s, e = location.span()
-        results["T"].append(sentence[s:e])
+        results['T'].append(sentence[s:e])
     return results
 
 
@@ -66,30 +77,50 @@ class EvalData:
         if not self.config['use_crf']:
             pred = torch.argmax(pred, dim=-1)
         for true_label, pred_label, sentece in zip(labels, pred, sentences):
-            if not self.config["use_crf"]:
+            if not self.config['use_crf']:
                 pred_label = pred_label.cpu().detach().tolist()
             true_label = true_label.cpu().detach().tolist()
             true_entites = decode(sentece, true_label)
             pred_entites = decode(sentece, pred_label)
-            for key in ["LOC", "ORG", "PER", "T"]:
-                self.pre_dict[key]['正确识别数'] += len([entity for entity in pred_entites[key] if entity in true_entites[key]])
+            for key in ['LOC', 'ORG', 'PER', 'T']:
+                self.pre_dict[key]['正确识别数'] += len(
+                    [entity for entity in pred_entites[key] if entity in true_entites[key]])
                 self.pre_dict[key]['样本实体数'] += len(true_entites[key])
                 self.pre_dict[key]['识别出实体数'] += len(pred_entites[key])
 
     def show_result(self):
         F1_scores = []
-        for key in ["LOC", "ORG", "PER", "T"]:
+        for key in ['LOC', 'ORG', 'PER', 'T']:
             precision = self.pre_dict[key]['正确识别数'] / (1e-5 + self.pre_dict[key]['识别出实体数'])
             recall = self.pre_dict[key]['正确识别数'] / (1e-5 + self.pre_dict[key]['样本实体数'])
             F1 = (2 * precision * recall) / (precision + recall + 1e-5)
             F1_scores.append(F1)
             self.logger.info('%s类实体，准确率：%f，召回率：%f，F1：%f' % (key, precision, recall, F1))
-        self.logger.info("Macro-F1：%f" % np.mean(F1_scores))
-        correct_pred = sum([self.pre_dict[key]['正确识别数'] for key in ["LOC", "ORG", "PER", "T"]])
-        total_pred = sum([self.pre_dict[key]['识别出实体数'] for key in ["LOC", "ORG", "PER", "T"]])
-        total_true = sum([self.pre_dict[key]['样本实体数'] for key in ["LOC", "ORG", "PER", "T"]])
+        self.logger.info('Macro-F1：%f' % np.mean(F1_scores))
+        correct_pred = sum([self.pre_dict[key]['正确识别数'] for key in ['LOC', 'ORG', 'PER', 'T']])
+        total_pred = sum([self.pre_dict[key]['识别出实体数'] for key in ['LOC', 'ORG', 'PER', 'T']])
+        total_true = sum([self.pre_dict[key]['样本实体数'] for key in ['LOC', 'ORG', 'PER', 'T']])
         micro_precision = correct_pred / (1e-5 + total_pred)
         micro_recall = correct_pred / (1e-5 + total_true)
         micro_f1 = (2 * micro_precision * micro_recall) / (1e-5 + micro_precision + micro_recall)
         self.logger.info('Micro-F1 %f' % micro_f1)
+        self.pre_dict['micro-f1'] = micro_f1
         self.logger.info('-----------------------------')
+
+    def plot_and_save(self, epoch, micro_f1s, losses):
+        best_f1 = max(micro_f1s)
+
+        x = range(epoch)
+        fig = plt.figure()
+        plt.plot(x, micro_f1s, label='micro_f1s')
+        plt.plot(x, losses, label='train loss')
+        plt.xlabel('epoch')
+        plt.ylabel('num')
+        plt.title('训练曲线 best eval=%f' % best_f1)
+        plt.legend()
+        plt.savefig(
+            os.path.join(self.config['model_path'],
+                         "report-%s-%s-%s-%f.png" % (self.config['model_type'],
+                                                     self.config['use_crf'],
+                                                     self.config['learning_rate'],
+                                                     best_f1)))

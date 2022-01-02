@@ -2,6 +2,9 @@ import torch
 import json
 from torch.utils.data import DataLoader
 
+"""
+数据加载脚本
+"""
 
 def load_vocab(vocab_path):
     vocab_dict = {}
@@ -13,7 +16,7 @@ def load_vocab(vocab_path):
 
 
 def load_schema(path):
-    with open(path, encoding="utf8") as f:
+    with open(path, encoding='utf8') as f:
         return json.load(f)
 
 
@@ -76,7 +79,7 @@ def load_dataset(config, shuffle=True):
 if __name__ == '__main__':
     import sys
 
-    sys.path.append("..")
+    sys.path.append('..')
     from config import config
 
     config['vocab_path'] = '../data/vocab.txt'
